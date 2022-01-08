@@ -18,7 +18,7 @@ def load_data(path):
 
             for i in range(1, 6):
                 if str(i) in line[0]:
-                    y.append(i)
+                    y.append(i-1)
     return data_X, y
 
 def generate_template(data_X_1, data_X_2, data_y_1, data_y_2):
@@ -76,6 +76,32 @@ def data_split(data_X, data_y, K=8, Kt=8):
             test_y.append(test_all_y[i])
 
     return np.array(train_X), np.array(train_y), np.array(test_X), np.array(test_y)
+
+def data_split_all(data_X, data_y, label_size, K=8, Kt=8):
+    data_set_X, data_set_y = {}, {}
+    for i in range(label_size):
+        data_set_X[i] = []
+        data_set_y[i] = []
+    # print(data_set_X)
+
+    for i in range(len(data_y)):
+        data_set_X[data_y[i]].append(data_X[i])
+        data_set_y[data_y[i]].append(data_y[i])
+
+    train_X, train_y, test_X, test_y = [], [], [], []
+    for i in range(label_size):
+        train_X_t, train_y_t, test_X_t, test_y_t = data_split(data_set_X[i], data_set_y[i], K, Kt)
+
+        if len(train_X) == 0:
+            train_X, train_y, test_X, test_y = train_X_t, train_y_t, test_X_t, test_y_t
+        else:
+            train_X = np.hstack([train_X, train_X_t])
+            train_y = np.hstack([train_y, train_y_t])
+            test_X = np.hstack([test_X, test_X_t])
+            test_y = np.hstack([test_y, test_y_t])
+
+    return train_X, train_y, test_X, test_y
+
 
 
 
