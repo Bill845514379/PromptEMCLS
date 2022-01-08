@@ -5,7 +5,7 @@ from common.text2id import X_data2id, get_answer_id
 import os
 import torch
 from config.cfg import cfg, path, hyper_roberta
-from common.load_data import load_data, tokenizer, data_split, generate_template
+from common.load_data import load_data, tokenizer, data_split_all, generate_template
 from model.PromptMask import PromptMask
 import torch.optim as optim
 from transformers import AdamW, get_linear_schedule_with_warmup
@@ -33,7 +33,7 @@ for test_id in range(len(seeds)):
     setup_seed(seeds[test_id])
 
     train_X, train_y = load_data(path['train_path'])
-    train_X0, train_y0, _, _ = data_split(train_X, train_y, cfg['K'])
+    train_X0, train_y0, _, _ = data_split_all(train_X, train_y, cfg['K'])
     test_X, test_y = load_data(path['test_path'])
     test_X, test_y = np.array(test_X), np.array(test_y)
 
@@ -166,14 +166,14 @@ for test_id in range(len(seeds)):
                 batch_y = batch_y.cpu().detach().numpy()
 
 
-                votes = np.zeros(6)
+                votes = np.zeros(5)
                 for type in range(5):
                     for j in range(type * cfg['K'], (type + 1) * cfg['K']):
                         if pred[j] == answer_map[1]:
                             votes[type] += 1
 
                     if batch_y[type * cfg['K'] + 1] == answer_map[1]:
-                        label_y.append(type+1)
+                        label_y.append(type)
 
                 label_out = np.argmax(votes) + 1
 
