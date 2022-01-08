@@ -33,7 +33,7 @@ for test_id in range(len(seeds)):
     setup_seed(seeds[test_id])
 
     train_X, train_y = load_data(path['train_path'])
-    train_X0, train_y0, _, _ = data_split_all(train_X, train_y, cfg['K'])
+    train_X0, train_y0, _, _ = data_split_all(train_X, train_y, 5, cfg['K'])
     test_X, test_y = load_data(path['test_path'])
     test_X, test_y = np.array(test_X), np.array(test_y)
 
