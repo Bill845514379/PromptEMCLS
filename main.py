@@ -33,12 +33,12 @@ for test_id in range(len(seeds)):
     setup_seed(seeds[test_id])
 
     train_X, train_y = load_data(path['train_path'])
-    train_X, train_y, _, _ = data_split(train_X, train_y, cfg['K'])
+    train_X0, train_y0, _, _ = data_split(train_X, train_y, cfg['K'])
     test_X, test_y = load_data(path['test_path'])
     test_X, test_y = np.array(test_X), np.array(test_y)
 
-    train_X, train_y = generate_template(train_X, train_X, train_y, train_y)
-    test_X, test_y = generate_template(test_X, train_X, test_y, train_y)
+    train_X, train_y = generate_template(train_X0, train_X0, train_y0, train_y0)
+    test_X, test_y = generate_template(test_X, train_X0, test_y, train_y0)
 
     train_X, test_X = X_data2id(train_X, tokenizer), X_data2id(test_X, tokenizer)
     train_y, answer_map = get_answer_id(train_y, tokenizer)
