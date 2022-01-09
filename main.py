@@ -165,19 +165,19 @@ for test_id in range(len(seeds)):
                 pred = pred.cpu().detach().numpy()
                 batch_y = batch_y.cpu().detach().numpy()
 
-                # for j in range(pred.shape[0]):
-                #     label_out.append(pred[j])
-                #     label_y.append(batch_y[j])
-                votes = np.zeros(5)
-                for type_id in range(5):
-                    for j in range(type_id * cfg['K'], (type_id + 1) * cfg['K']):
-                        if pred[j] == answer_map[1]:
-                            votes[type_id] += 1
-
-                    if batch_y[type_id * cfg['K'] + 1] == answer_map[1]:
-                        label_y.append(type_id)
-
-                label_out.append(np.argmax(votes))
+                for j in range(pred.shape[0]):
+                    label_out.append(pred[j])
+                    label_y.append(batch_y[j])
+                # votes = np.zeros(5)
+                # for type_id in range(5):
+                #     for j in range(type_id * cfg['K'], (type_id + 1) * cfg['K']):
+                #         if pred[j] == answer_map[1]:
+                #             votes[type_id] += 1
+                # 
+                #     if batch_y[type_id * cfg['K'] + 1] == answer_map[1]:
+                #         label_y.append(type_id)
+                # 
+                # label_out.append(np.argmax(votes))
 
 
             label_out = np.array(label_out)
