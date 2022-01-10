@@ -65,6 +65,7 @@ def generate_template(data_X_1, data_X_2, data_y_1, data_y_2, is_train=False):
 
     if is_train:
         data_X = pos_set_X
+        data_y = pos_set_y
         neg_ids = get_random_sample_ids(len(neg_set_X), len(pos_set_y))
         for j in neg_ids:
             data_X.append(neg_set_X[j])
