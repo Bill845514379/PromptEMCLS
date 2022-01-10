@@ -21,7 +21,16 @@ def load_data(path):
                     y.append(i-1)
     return data_X, y
 
-def generate_template(data_X_1, data_X_2, data_y_1, data_y_2):
+
+def get_random_sample_ids(length, K):
+    import random
+    ids_list = []
+    for i in range(length):
+        ids_list.append(i)
+    ids = random.sample(ids_list, K)
+    return ids
+
+def generate_template(data_X_1, data_X_2, data_y_1, data_y_2, is_train=False):
     '''
     :param data_X_1:  target
     :param data_X_2:  train set sentence
@@ -33,6 +42,8 @@ def generate_template(data_X_1, data_X_2, data_y_1, data_y_2):
     SEP = '</s>'
     MASK = '<mask>'
 
+    neg_set_X, neg_set_y = [], []
+    pos_set_X, pos_set_y = [], []
     for i in range(len(data_X_1)):
         for j in range(len(data_X_2)):
             template = cfg['template']
@@ -41,20 +52,25 @@ def generate_template(data_X_1, data_X_2, data_y_1, data_y_2):
             template = template.replace('[X2]', SEP + ' ' + data_X_2[j] + ' ' + SEP)
             template = template.replace('[MASK]', MASK)
 
-            data_X.append(template)
             if data_y_1[i] == data_y_2[j]:
                 data_y.append(1)
+                if is_train:
+                    pos_set_X.append(template)
+                    pos_set_y.append(1)
             else:
                 data_y.append(0)
-    return data_X, data_y
+                if is_train:
+                    neg_set_X.append(template)
+                    neg_set_y.append(0)
 
-def get_random_sample_ids(length, K):
-    import random
-    ids_list = []
-    for i in range(length):
-        ids_list.append(i)
-    ids = random.sample(ids_list, K)
-    return ids
+    if is_train:
+        data_X = pos_set_X
+        neg_ids = get_random_sample_ids(len(neg_set_X), len(pos_set_y))
+        for j in neg_ids:
+            data_X.append(neg_set_X[j])
+            data_y.append(neg_set_y)
+
+    return data_X, data_y
 
 def data_split(data_X, data_y, K=8, Kt=8):
     train_ids = get_random_sample_ids(len(data_X), K)
@@ -101,6 +117,7 @@ def data_split_all(data_X, data_y, label_size, K=8, Kt=8):
             test_y = np.hstack([test_y, test_y_t])
 
     return train_X, train_y, test_X, test_y
+
 
 
 
