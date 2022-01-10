@@ -51,7 +51,8 @@ def generate_template(data_X_1, data_X_2, data_y_1, data_y_2, is_train=False):
             template = template.replace('[X1]', CLS + ' ' + data_X_1[i] + ' ' + SEP)
             template = template.replace('[X2]', SEP + ' ' + data_X_2[j] + ' ' + SEP)
             template = template.replace('[MASK]', MASK)
-
+            data_X.append(template)
+            
             if data_y_1[i] == data_y_2[j]:
                 data_y.append(1)
                 if is_train:
