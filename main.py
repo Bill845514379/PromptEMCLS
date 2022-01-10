@@ -25,9 +25,9 @@ else:
     import torch_xla.core.xla_model as xm
     device = xm.xla_device()
 
-acc_array = []
+acc_array_1, f1_array, acc_array_2 = [], [], []
 seeds = [10, 100, 1000, 2000, 4000]
-average_acc = 0
+average_acc_1, average_f1, average_acc_2 = 0, 0, 0
 for test_id in range(len(seeds)):
     print('~~~~~~~~~~~~~ 第', test_id+1, '次测试 ~~~~~~~~~~~~~~~~~~~')
     setup_seed(seeds[test_id])
@@ -37,7 +37,7 @@ for test_id in range(len(seeds)):
     test_X, test_y = load_data(path['test_path'])
     test_X, test_y = np.array(test_X), np.array(test_y)
 
-    train_X, train_y = generate_template(train_X0, train_X0, train_y0, train_y0)
+    train_X, train_y = generate_template(train_X0, train_X0, train_y0, train_y0, True)
     test_X, test_y = generate_template(test_X, train_X0, test_y, train_y0)
 
     train_X, test_X = X_data2id(train_X, tokenizer), X_data2id(test_X, tokenizer)
@@ -148,7 +148,9 @@ for test_id in range(len(seeds)):
 
         time0 = time.time()
         if (i + 1) % epoch == 0:
+            score = ScorePRF()
             label_out, label_y = [], []
+            label_out_2, label_y_2 = [], []
             print('-------------------------   test   ------------------------------')
             sum_acc, num = 0, 0
             # torch.save(net.state_dict(), 'save_model/params' + str(i + 1) + '.pkl')
@@ -168,29 +170,42 @@ for test_id in range(len(seeds)):
                 for j in range(pred.shape[0]):
                     label_out.append(pred[j])
                     label_y.append(batch_y[j])
-                # votes = np.zeros(5)
-                # for type_id in range(5):
-                #     for j in range(type_id * cfg['K'], (type_id + 1) * cfg['K']):
-                #         if pred[j] == answer_map[1]:
-                #             votes[type_id] += 1
-                # 
-                #     if batch_y[type_id * cfg['K'] + 1] == answer_map[1]:
-                #         label_y.append(type_id)
-                # 
-                # label_out.append(np.argmax(votes))
 
+                votes = np.zeros(5)
+                for type_id in range(5):
+                    for j in range(type_id * cfg['K'], (type_id + 1) * cfg['K']):
+                        if pred[j] == answer_map[1]:
+                            votes[type_id] += 1
 
+                    if batch_y[type_id * cfg['K'] + 1] == answer_map[1]:
+                        label_y_2.append(type_id)
+
+                label_out_2.append(np.argmax(votes))
+            score.cal_tp_fp_fn(label_y, label_out, 1)
             label_out = np.array(label_out)
             label_y = np.array(label_y)
 
-            acc = (np.sum(label_y == label_out)) / len(label_y)
+            p1, r1, f1 = score.cal_label_f1()
+            acc_1 = (np.sum(label_y == label_out)) / len(label_y)
+            acc_2 = (np.sum(label_y_2 == label_out_2)) / len(label_y_2)
             print('------------------ epoch:{} ----------------'.format(i + 1))
-            print('test_acc:{}, time:{}'.format( round(acc, 4), time.time()-time0))
+            print('test_acc1:{}, time:{}'.format( round(acc_1, 4), time.time()-time0))
             print('============================================'.format(i + 1))
-            average_acc += acc * 100
-            acc_array.append(acc * 100)
+            average_acc_1 += acc_1 * 100
+            average_f1 += f1 * 100
+            average_acc_2 += acc_2 * 100
+            acc_array_1.append(acc_1 * 100)
+            f1_array.append(f1 * 100)
+            acc_array_2.append(acc_2 * 100)
 
 
-average_acc /= 5
-acc_array = np.array(acc_array)
-print('average_acc:{}, std:{}'.format(round(average_acc, 4), round(np.std(acc_array, ddof=1), 4)))
+average_acc_1 /= 5
+average_acc_2 /= 5
+average_f1 /= 5
+
+acc_array_1 = np.array(acc_array_1)
+acc_array_2 = np.array(acc_array_2)
+f1_array = np.array(f1_array)
+print('average_acc_1:{}, std:{}'.format(round(average_acc_1, 4), round(np.std(acc_array_1, ddof=1), 4)))
+print('average_f1:{}, std:{}'.format(round(average_f1, 4), round(np.std(f1_array, ddof=1), 4)))
+print('average_acc_2:{}, std:{}'.format(round(average_acc_2, 4), round(np.std(acc_array_2, ddof=1), 4)))
