@@ -181,9 +181,10 @@ for test_id in range(len(seeds)):
                         label_y_2.append(type_id)
 
                 label_out_2.append(np.argmax(votes))
-            score.cal_tp_fp_fn(label_y, label_out, 1)
+
             label_out = np.array(label_out)
             label_y = np.array(label_y)
+            score.cal_tp_fp_fn(label_y, label_out, 1)
 
             p1, r1, f1 = score.cal_label_f1()
             acc_1 = (np.sum(label_y == label_out)) / len(label_y)
