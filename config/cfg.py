@@ -1,7 +1,7 @@
 cfg = {
     'gpu_id': 0,
     'max_len': 120,
-    'train_batch_size': 16 * 5,
+    'train_batch_size': 16,
     'test_batch_size': 16 * 5,
     'learning_rate': 1e-5,
     'epoch': 8,
