@@ -80,6 +80,19 @@ def reorder_span(sentence, probability, span_radio):
         i += span_len
     return ''.join(ans)
 
+def tenser_shuffle(data_X, data_y):
+    '''
+    dim = 0
+    :param data_X:
+    :param data_y:
+    :return:
+    '''
+    import torch
+    idx = torch.randperm(data_X.shape[0])
+    data_X = data_X[idx, :].view(data_X.size())
+    data_y = data_y[idx].view(data_y.size())
+    return data_X, data_y
+
 if __name__ == '__main__':
     text = 'Good morning! What are you doing now? What should I do? I want to see a movie with you.'
     ans = delete_character(text, 0.1)
