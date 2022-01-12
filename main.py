@@ -5,7 +5,7 @@ from common.text2id import X_data2id, get_answer_id
 import os
 import torch
 from config.cfg import cfg, path, hyper_roberta
-from common.load_data import load_data, tokenizer, data_split_all, generate_template
+from common.load_data import load_data, tokenizer, data_split_all, generate_template,data_split_balance
 from model.PromptMask import PromptMask
 import torch.optim as optim
 from transformers import AdamW, get_linear_schedule_with_warmup
@@ -37,7 +37,7 @@ for test_id in range(len(seeds)):
     test_X, test_y = load_data(path['test_path'])
     test_X, test_y = np.array(test_X), np.array(test_y)
 
-    train_X, train_y = generate_template(train_X0, train_X0, train_y0, train_y0, True)
+    train_X, train_y = generate_template(train_X0, train_X0, train_y0, train_y0)
     test_X, test_y = generate_template(test_X, train_X0, test_y, train_y0)
 
     train_X, test_X = X_data2id(train_X, tokenizer), X_data2id(test_X, tokenizer)
@@ -53,7 +53,7 @@ for test_id in range(len(seeds)):
     loader_train = DataLoader(
         dataset=train_data,
         batch_size=cfg['train_batch_size'],
-        shuffle=True,
+        shuffle=False,
         num_workers=0,
         drop_last=False
     )
@@ -114,6 +114,9 @@ for test_id in range(len(seeds)):
         ave_loss, sum_acc = 0, 0
         for batch_x, batch_y in loader_train:
             net.train()
+            batch_x, batch_y = data_split_balance(batch_x, batch_y, answer_map[1], 8)
+            batch_x = torch.vstack(batch_x)
+            batch_y = torch.hstack(batch_y)
             batch_x, batch_y = Variable(batch_x).long(), Variable(batch_y).long()
             batch_x, batch_y = batch_x.to(device), batch_y.to(device)
 
@@ -171,6 +174,8 @@ for test_id in range(len(seeds)):
                     label_out.append(pred[j])
                     label_y.append(batch_y[j])
 
+
+
                 votes = np.zeros(5)
                 for type_id in range(5):
                     for j in range(type_id * cfg['K'], (type_id + 1) * cfg['K']):
@@ -184,13 +189,17 @@ for test_id in range(len(seeds)):
 
             label_out = np.array(label_out)
             label_y = np.array(label_y)
-            score.cal_tp_fp_fn(label_y, label_out, 1)
+            label_out_2 = np.array(label_out_2)
+            label_y_2 = np.array(label_y_2)
+
+            score.cal_tp_fp_fn(label_y, label_out, answer_map[1])
 
             p1, r1, f1 = score.cal_label_f1()
             acc_1 = (np.sum(label_y == label_out)) / len(label_y)
             acc_2 = (np.sum(label_y_2 == label_out_2)) / len(label_y_2)
             print('------------------ epoch:{} ----------------'.format(i + 1))
-            print('test_acc1:{}, time:{}'.format( round(acc_1, 4), time.time()-time0))
+            print('test_acc1:{},test_p:{},test_r:{},test_f1:{},test_acc2:{} time:{}'.format(round(acc_1, 4), round(p1, 4), round(r1, 4),
+                                                                                round(f1, 4), round(acc_2, 4), time.time()-time0))
             print('============================================'.format(i + 1))
             average_acc_1 += acc_1 * 100
             average_f1 += f1 * 100
