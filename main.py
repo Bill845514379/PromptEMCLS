@@ -13,6 +13,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 from common.metric import ScorePRF
 from common.set_random_seed import setup_seed
+from common.util import tenser_shuffle
 import time
 
 if cfg['device'] != 'TPU':
@@ -35,7 +36,7 @@ for test_id in range(len(seeds)):
     train_X, train_y = load_data(path['train_path'])
     train_X0, train_y0, _, _ = data_split_all(train_X, train_y, 5, cfg['K'])
     test_X, test_y = load_data(path['test_path'])
-    test_X, test_y = np.array(test_X), np.array(test_y)
+    test_X, test_y, _, _ = data_split_all(train_X, train_y, 5, cfg['Kt'])
 
     train_X, train_y = generate_template(train_X0, train_X0, train_y0, train_y0)
     test_X, test_y = generate_template(test_X, train_X0, test_y, train_y0)
@@ -114,9 +115,10 @@ for test_id in range(len(seeds)):
         ave_loss, sum_acc = 0, 0
         for batch_x, batch_y in loader_train:
             net.train()
-            batch_x, batch_y = data_split_balance(batch_x, batch_y, answer_map[1], 8)
-            batch_x = torch.vstack(batch_x)
-            batch_y = torch.hstack(batch_y)
+            # batch_x, batch_y = data_split_balance(batch_x, batch_y, answer_map[1], 8)
+            # batch_x = torch.vstack(batch_x)
+            # batch_y = torch.hstack(batch_y)
+            # batch_x, batch_y = tenser_shuffle(batch_x, batch_y)
             batch_x, batch_y = Variable(batch_x).long(), Variable(batch_y).long()
             batch_x, batch_y = batch_x.to(device), batch_y.to(device)
 
